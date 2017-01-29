@@ -18,16 +18,33 @@ public class WordCount {
 
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-
+            //key: offset
+            //value: line
+            //example value: I love data
+            String[] words = value.toString().split(" ");
+            for (String word: words) {
+                //I 1
+                //love 1
+                //data 1
+                Text outputKey = new Text(word);//key is the word
+                IntWritable outputValue = new IntWritable(1);//先假设每个单词出现一次，最后再相加，统计工作由reducer完成
+                context.write(outputKey, outputValue);
+            }
 
         }
     }
 
-    public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+    public static class WordNumberReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 
         @Override
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-
+            //I <1>
+            //love <1,1> if love appears twice
+            int sum = 0;
+            for (IntWritable value: values) {
+                sum = sum + value.get();
+            }
+            context.write(key, new IntWritable(sum));
         }
     }
 
