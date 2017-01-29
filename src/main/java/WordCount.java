@@ -49,6 +49,15 @@ public class WordCount {
     }
 
     public static void main(String[] args) throws Exception {
-
+        Configuration configuration = new Configuration();
+        Job job = Job.getInstance(configuration);
+        job.setJarByClass(WordCount.class);
+        job.setMapperClass(TokenizerMapper.class);
+        job.setReducerClass(WordNumberReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        job.waitForCompletion(true);
     }
 }
