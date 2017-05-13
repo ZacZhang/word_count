@@ -16,11 +16,14 @@ public class WordCount {
 
 
         @Override
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            // key: offset
-            // value: line 读进来的一句话
-            // example value: I love data
+        public void map(Object key,
+                        Text value,
+                        Context context) throws IOException, InterruptedException {
+            // key: 当前的offset （读到第几行了）
+            // value: 当前的line （默认一行一行读）
+            // context: 当前的 mapreduce 和 mapreduce之外的环境进行交互的接口 （上下文）
 
+            // example value: I love data
             // split into words
             String[] words = value.toString().split(" ");
             for (String word: words) {
@@ -38,9 +41,11 @@ public class WordCount {
     public static class WordNumberReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 
         @Override
-        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            // I <1>
-            // love <1,1> if love appears twice
+        public void reduce(Text key,
+                           Iterable<IntWritable> values,
+                           Context context) throws IOException, InterruptedException {
+            // key: I  values: <1>
+            // key: love values: <1, 1> (if love appears twice)
             int sum = 0;
             for (IntWritable value: values) {
                 sum = sum + value.get();
@@ -49,7 +54,9 @@ public class WordCount {
         }
     }
 
+    // 运行
     public static void main(String[] args) throws Exception {
+
         Configuration configuration = new Configuration();
 
         Job job = Job.getInstance(configuration);
@@ -60,7 +67,7 @@ public class WordCount {
         job.setMapOutputValueClass(IntWritable.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0])); // 通过命令行来设置输入输出路径
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1])); // 每次运行时要保证output的文件夹不存在
 
         job.waitForCompletion(true); // 等待上一个mapreduce结束才能进行下一个mapreduce
     }
